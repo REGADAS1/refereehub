@@ -56,4 +56,14 @@ public class MatchService {
 
         return toResponse(savedMatch);
     }
+
+    //PARA PROCURAR UM JOGO PELO ID
+    public MatchResponse findById (Long id){
+        Match match = matchRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Match not found with id: " + id));
+
+            return toResponse(match);
+    }
+
+
 }
