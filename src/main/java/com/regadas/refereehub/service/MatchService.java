@@ -3,8 +3,11 @@ package com.regadas.refereehub.service;
 import com.regadas.refereehub.domain.Match;
 import com.regadas.refereehub.dto.CreateMatchRequest;
 import com.regadas.refereehub.dto.MatchResponse;
+import com.regadas.refereehub.dto.UpdateMatchRequest;
+import com.regadas.refereehub.exception.MatchNotFoundException;
 import com.regadas.refereehub.repository.MatchRepository;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 
@@ -22,6 +25,14 @@ public class MatchService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+    
+    //PARA PROCURAR UM JOGO PELO ID
+    public MatchResponse findById (Long id){
+        Match match = matchRepository.findById(id)
+            .orElseThrow(() ->  new MatchNotFoundException(id));
+
+            return toResponse(match);
     }
 
     private MatchResponse toResponse(Match match) {
@@ -57,13 +68,26 @@ public class MatchService {
         return toResponse(savedMatch);
     }
 
-    //PARA PROCURAR UM JOGO PELO ID
-    public MatchResponse findById (Long id){
+    public MatchResponse update(Long id, UpdateMatchRequest request){
         Match match = matchRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Match not found with id: " + id));
+            .orElseThrow(() -> new MatchNotFoundException(id));
 
-            return toResponse(match);
+        match.setDate(request.date());
+        match.setTime(request.time());
+        match.setRole(request.role());
+        match.setAgeGroup(request.ageGroup());
+        match.setDivision(request.division());
+        match.setHomeTeam(request.homeTeam());
+        match.setAwayTeam(request.awayTeam());
+        match.setVenue(request.venue());
+        match.setStatus(request.status());
+
+        Match updatedMatch = matchRepository.save(match);
+
+        return toResponse(updatedMatch);
     }
+
+    
 
 
 }

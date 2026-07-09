@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.regadas.refereehub.dto.CreateMatchRequest;
 import com.regadas.refereehub.dto.MatchResponse;
+import com.regadas.refereehub.dto.UpdateMatchRequest;
 import com.regadas.refereehub.service.MatchService;
 
 import jakarta.validation.Valid;
@@ -42,6 +44,11 @@ public class MatchController {
         @GetMapping("/{id}")
         public MatchResponse getMatchById(@PathVariable Long id){
                 return matchService.findById(id);      
+        }
+
+        @PutMapping("/{id}")
+        public MatchResponse updateMatch(@PathVariable Long id, @Valid @RequestBody UpdateMatchRequest request) {
+                return matchService.update(id, request);
         }
          
 
