@@ -87,6 +87,13 @@ public class MatchService {
         return toResponse(updatedMatch);
     }
 
+    public void delete(Long id){
+        Match match = matchRepository.findById(id)
+            .orElseThrow(() -> new MatchNotFoundException(id));
+
+        matchRepository.delete(match);
+    }
+
     
 
 
