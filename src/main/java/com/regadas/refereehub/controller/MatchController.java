@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.regadas.refereehub.domain.MatchStatus;
 import com.regadas.refereehub.dto.CreateMatchRequest;
 import com.regadas.refereehub.dto.MatchResponse;
 import com.regadas.refereehub.dto.UpdateMatchRequest;
@@ -32,8 +34,8 @@ public class MatchController {
         }
 
         @GetMapping
-        public List<MatchResponse> getMatches() {
-                return matchService.findAll();
+        public List<MatchResponse> getMatches(@RequestParam(required = false) MatchStatus status, @RequestParam(required = false) Integer year, @RequestParam(required = false)  Integer month) {
+                return matchService.findAll(status, year, month);
         }
 
         @PostMapping
