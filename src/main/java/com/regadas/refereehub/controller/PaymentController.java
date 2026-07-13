@@ -2,6 +2,7 @@ package com.regadas.refereehub.controller;
 
 import com.regadas.refereehub.dto.CreatePaymentRequest;
 import com.regadas.refereehub.dto.PaymentResponse;
+import com.regadas.refereehub.dto.UpdatePaymentRequest;
 import com.regadas.refereehub.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -31,4 +32,19 @@ public class PaymentController {
     public List<PaymentResponse> getPendingPayments() {
         return paymentService.findPending();
     }
+
+    @GetMapping("/api/matches/{matchId}/payment")
+    public PaymentResponse getPaymentByMatchId(@PathVariable Long matchId) {
+        return paymentService.findByMatchId(matchId);
+    }
+
+    @PutMapping("/api/payments/{id}")
+    public PaymentResponse updatePayment(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdatePaymentRequest request
+    ) {
+        return paymentService.update(id, request);
+    }
+
+    
 }

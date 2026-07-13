@@ -4,10 +4,12 @@ import com.regadas.refereehub.domain.Match;
 import com.regadas.refereehub.domain.Payment;
 import com.regadas.refereehub.dto.CreatePaymentRequest;
 import com.regadas.refereehub.dto.PaymentResponse;
+import com.regadas.refereehub.dto.UpdatePaymentRequest;
 import com.regadas.refereehub.exception.MatchNotFoundException;
 import com.regadas.refereehub.exception.PaymentAlreadyExistsException;
 import com.regadas.refereehub.repository.MatchRepository;
 import com.regadas.refereehub.repository.PaymentRepository;
+import com.regadas.refereehub.exception.PaymentNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -107,5 +109,31 @@ public class PaymentService {
 
     private BigDecimal valueOrZero(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
+    }
+
+
+    public PaymentResponse findByMatchId(Long matchId) {
+        Payment payment = paymentRepository.findByMatchId(matchId)
+                .orElseThrow(() -> new PaymentNotFoundException(matchId));
+
+        return toResponse(payment);
+    }
+
+    public PaymentResponse update(Long id, UpdatePaymentRequest request) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new PaymentNotFoundException(id));
+
+        payment.setFeeAmount(request.feeAmount());
+        payment.setPaid(request.paid());
+        payment.setPaidAt(request.paidAt());
+        payment.setKilometers(request.kilometers());
+        payment.setKmRate(request.kmRate());
+        payment.setNightSubsidyApplied(request.nightSubsidyApplied());
+        payment.setNightSubsidyAmount(calculateNightSubsidyAmount(request.nightSubsidyApplied()));
+        payment.setNotes(request.notes());
+
+        Payment updatedPayment = paymentRepository.save(payment);
+
+        return toResponse(updatedPayment);
     }
 }
