@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,8 +35,18 @@ public class MatchController {
         }
 
         @GetMapping
-        public List<MatchResponse> getMatches(@RequestParam(required = false) MatchStatus status, @RequestParam(required = false) Integer year, @RequestParam(required = false)  Integer month) {
-                return matchService.findAll(status, year, month);
+        public List<MatchResponse> getMatches(
+                @RequestParam(required = false) MatchStatus status,
+
+                @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                LocalDate startDate,
+
+                @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                LocalDate endDate
+        ) {
+        return matchService.findAll(status, startDate, endDate);
         }
 
         @PostMapping

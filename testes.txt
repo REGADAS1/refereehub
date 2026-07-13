@@ -1,0 +1,470 @@
+Neste momento podes testar **duas partes** do projeto:
+
+```text
+1. Módulo de jogos, que já estava feito
+2. Módulo de pagamentos, se já criaste os ficheiros Payment, PaymentRepository, PaymentService, PaymentController, DTOs e migration V2
+```
+
+Eu testaria por esta ordem.
+
+# 1. Testar se a API está viva
+
+No Insomnia:
+
+```http
+GET http://localhost:8080/
+```
+
+Resposta esperada:
+
+```text
+RefereeHub API is running
+```
+
+Se isto funcionar, o Spring Boot está a correr.
+
+# 2. Testar listar jogos
+
+```http
+GET http://localhost:8080/api/matches
+```
+
+Resposta esperada:
+
+```json
+[
+  {
+    "id": 1,
+    "date": "2026-07-06",
+    "time": "16:00:00",
+    "role": "REFEREE",
+    "ageGroup": "Seniores",
+    "division": "Distrital",
+    "homeTeam": "Águias Alvelos",
+    "awayTeam": "SC Cabreiros",
+    "venue": "Campo Novo",
+    "status": "SCHEDULED"
+  }
+]
+```
+
+Se ainda não tiveres jogos, é normal devolver:
+
+```json
+[]
+```
+
+# 3. Testar criar um jogo
+
+```http
+POST http://localhost:8080/api/matches
+```
+
+Body:
+
+```json
+{
+  "date": "2026-07-06",
+  "time": "16:00:00",
+  "role": "REFEREE",
+  "ageGroup": "Seniores",
+  "division": "Distrital",
+  "homeTeam": "Águias Alvelos",
+  "awayTeam": "SC Cabreiros",
+  "venue": "Campo Novo",
+  "status": "SCHEDULED"
+}
+```
+
+Resposta esperada: `201 Created` ou `200 OK`, dependendo de como configuraste o controller.
+
+Depois volta a testar:
+
+```http
+GET http://localhost:8080/api/matches
+```
+
+O jogo deve aparecer.
+
+# 4. Testar procurar jogo por id
+
+Se o jogo criado tiver `id = 1`:
+
+```http
+GET http://localhost:8080/api/matches/1
+```
+
+Resposta esperada: os dados desse jogo.
+
+Agora testa um id que não existe:
+
+```http
+GET http://localhost:8080/api/matches/999
+```
+
+Resposta esperada:
+
+```http
+404 Not Found
+```
+
+Com JSON parecido com:
+
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Match not found with id: 999",
+  "path": "/api/matches/999"
+}
+```
+
+# 5. Testar filtros dos jogos
+
+Se já mudaste o controller para usar `startDate` e `endDate`, testa:
+
+```http
+GET http://localhost:8080/api/matches?status=SCHEDULED
+```
+
+Deve devolver apenas jogos com estado `SCHEDULED`.
+
+Depois:
+
+```http
+GET http://localhost:8080/api/matches?startDate=2026-07-01&endDate=2026-07-31
+```
+
+Deve devolver jogos entre 1 e 31 de julho de 2026.
+
+Agora junta os dois filtros:
+
+```http
+GET http://localhost:8080/api/matches?status=SCHEDULED&startDate=2026-07-01&endDate=2026-07-31
+```
+
+Se tiveres um jogo em julho com estado `SCHEDULED`, aparece.
+
+Agora testa uma data onde não haja jogos:
+
+```http
+GET http://localhost:8080/api/matches?status=SCHEDULED&startDate=2026-08-01&endDate=2026-08-31
+```
+
+Se não tiveres jogos em agosto, deve devolver:
+
+```json
+[]
+```
+
+Isto é importante. Lista vazia aqui é correto, não é erro.
+
+# 6. Testar editar jogo
+
+```http
+PUT http://localhost:8080/api/matches/1
+```
+
+Body:
+
+```json
+{
+  "date": "2026-07-06",
+  "time": "18:00:00",
+  "role": "ASSISTANT_REFEREE",
+  "ageGroup": "Seniores",
+  "division": "Distrital",
+  "homeTeam": "Águias Alvelos",
+  "awayTeam": "SC Cabreiros",
+  "venue": "Campo Novo",
+  "status": "COMPLETED"
+}
+```
+
+Depois confirma:
+
+```http
+GET http://localhost:8080/api/matches/1
+```
+
+Deve aparecer com a nova hora, novo papel e estado `COMPLETED`.
+
+# 7. Testar apagar jogo
+
+Cria primeiro um jogo de teste para não apagares um importante.
+
+Depois:
+
+```http
+DELETE http://localhost:8080/api/matches/2
+```
+
+Resposta esperada: normalmente `204 No Content`.
+
+Depois confirma:
+
+```http
+GET http://localhost:8080/api/matches/2
+```
+
+Deve devolver:
+
+```http
+404 Not Found
+```
+
+# 8. Testar criar pagamento
+
+Só faz isto se já criaste o módulo `Payment`.
+
+Primeiro garante que existe um jogo, por exemplo:
+
+```http
+GET http://localhost:8080/api/matches/1
+```
+
+Depois cria o pagamento:
+
+```http
+POST http://localhost:8080/api/matches/1/payment
+```
+
+Body:
+
+```json
+{
+  "feeAmount": 42.50,
+  "paid": false,
+  "paidAt": null,
+  "kilometers": 28,
+  "kmRate": 0.36,
+  "nightSubsidyApplied": true,
+  "notes": "Jogo com subsídio noturno"
+}
+```
+
+Resposta esperada:
+
+```json
+{
+  "id": 1,
+  "matchId": 1,
+  "feeAmount": 42.50,
+  "paid": false,
+  "paidAt": null,
+  "kilometers": 28,
+  "kmRate": 0.36,
+  "mileageAmount": 10.08,
+  "nightSubsidyApplied": true,
+  "nightSubsidyAmount": 13.00,
+  "totalAmount": 65.58,
+  "notes": "Jogo com subsídio noturno"
+}
+```
+
+Aqui estás a confirmar três coisas importantes:
+
+```text
+28 × 0.36 = 10.08
+subsídio noturno = 13.00
+42.50 + 10.08 + 13.00 = 65.58
+```
+
+# 9. Testar pagamento sem subsídio noturno
+
+Cria outro jogo primeiro, por exemplo com `id = 2`.
+
+Depois:
+
+```http
+POST http://localhost:8080/api/matches/2/payment
+```
+
+Body:
+
+```json
+{
+  "feeAmount": 50.00,
+  "paid": false,
+  "paidAt": null,
+  "kilometers": 20,
+  "kmRate": 0.36,
+  "nightSubsidyApplied": false,
+  "notes": "Jogo sem subsídio noturno"
+}
+```
+
+Resposta esperada:
+
+```json
+{
+  "feeAmount": 50.00,
+  "kilometers": 20,
+  "kmRate": 0.36,
+  "mileageAmount": 7.20,
+  "nightSubsidyApplied": false,
+  "nightSubsidyAmount": 0,
+  "totalAmount": 57.20
+}
+```
+
+O JSON pode ter mais campos, mas estes valores devem bater certo.
+
+# 10. Testar pagamentos pendentes
+
+```http
+GET http://localhost:8080/api/payments/pending
+```
+
+Como criaste pagamentos com:
+
+```json
+"paid": false
+```
+
+eles devem aparecer nesta lista.
+
+Resposta esperada:
+
+```json
+[
+  {
+    "id": 1,
+    "matchId": 1,
+    "feeAmount": 42.50,
+    "paid": false,
+    "mileageAmount": 10.08,
+    "nightSubsidyAmount": 13.00,
+    "totalAmount": 65.58
+  }
+]
+```
+
+# 11. Testar pagamento duplicado
+
+Tenta criar outro pagamento para o mesmo jogo:
+
+```http
+POST http://localhost:8080/api/matches/1/payment
+```
+
+Com qualquer body válido.
+
+Resposta esperada:
+
+```http
+409 Conflict
+```
+
+Com mensagem parecida com:
+
+```json
+{
+  "status": 409,
+  "error": "Conflict",
+  "message": "Payment already exists for match with id: 1",
+  "path": "/api/matches/1/payment"
+}
+```
+
+Isto confirma que esta regra está a funcionar:
+
+```text
+um jogo só pode ter um pagamento
+```
+
+# 12. Testar pagamento para jogo inexistente
+
+```http
+POST http://localhost:8080/api/matches/999/payment
+```
+
+Body:
+
+```json
+{
+  "feeAmount": 42.50,
+  "paid": false,
+  "paidAt": null,
+  "kilometers": 28,
+  "kmRate": 0.36,
+  "nightSubsidyApplied": true,
+  "notes": "Teste com jogo inexistente"
+}
+```
+
+Resposta esperada:
+
+```http
+404 Not Found
+```
+
+Porque não existe jogo com `id = 999`.
+
+# 13. Testar validações
+
+Tenta criar um pagamento sem `feeAmount`:
+
+```http
+POST http://localhost:8080/api/matches/1/payment
+```
+
+Body:
+
+```json
+{
+  "paid": false,
+  "paidAt": null,
+  "kilometers": 28,
+  "kmRate": 0.36,
+  "nightSubsidyApplied": true,
+  "notes": "Sem prémio"
+}
+```
+
+Como tens isto no DTO:
+
+```java
+@NotNull
+@DecimalMin("0.00")
+BigDecimal feeAmount
+```
+
+idealmente deve devolver:
+
+```http
+400 Bad Request
+```
+
+Se não devolver um erro bem formatado, não há problema. Isso pode ser melhorado depois com um handler específico para erros de validação.
+
+# O que eu testaria agora, em resumo
+
+A tua checklist atual é esta:
+
+```text
+GET /api/matches
+POST /api/matches
+GET /api/matches/{id}
+PUT /api/matches/{id}
+DELETE /api/matches/{id}
+
+GET /api/matches?status=SCHEDULED
+GET /api/matches?startDate=2026-07-01&endDate=2026-07-31
+GET /api/matches?status=SCHEDULED&startDate=2026-07-01&endDate=2026-07-31
+
+POST /api/matches/{matchId}/payment
+GET /api/payments/pending
+
+404 para jogo inexistente
+409 para pagamento duplicado
+400 para dados inválidos
+```
+
+Neste momento, se isto tudo funcionar, tens uma base muito sólida: jogos, filtros, pagamentos, totais calculados, subsídio noturno e pagamentos pendentes. Depois o próximo passo natural será criar:
+
+```http
+PUT /api/payments/{id}
+```
+
+para editar pagamento e marcar como pago.

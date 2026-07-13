@@ -21,24 +21,22 @@ public class MatchService {
         this.matchRepository = matchRepository;
     }
 
-    public List<MatchResponse> findAll(MatchStatus status, Integer year, Integer month) {
+    public List<MatchResponse> findAll(
+        MatchStatus status,
+        LocalDate startDate,
+        LocalDate endDate
+    ) {
         List<Match> matches;
 
-        boolean hasDateFilter = year != null && month != null;
+        boolean hasDateFilter = startDate != null && endDate != null;
 
-        if (status == null && hasDateFilter) {
-            LocalDate startDate = LocalDate.of(year, month, 1);
-            LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-            
+        if (status != null && hasDateFilter) {
             matches = matchRepository.findByStatusAndDateBetween(status, startDate, endDate);
 
         } else if (status != null) {
             matches = matchRepository.findByStatus(status);
 
         } else if (hasDateFilter) {
-            LocalDate startDate = LocalDate.of(year, month, 1);
-            LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-
             matches = matchRepository.findByDateBetween(startDate, endDate);
 
         } else {
@@ -46,8 +44,8 @@ public class MatchService {
         }
 
         return matches.stream()
-            .map(this::toResponse)
-            .toList();
+                .map(this::toResponse)
+                .toList();
     }
     
     //PARA PROCURAR UM JOGO PELO ID

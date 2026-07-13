@@ -12,8 +12,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     List<Match> findByStatus(MatchStatus status);
 
-    List<Match> findByYear(int year);
-
     List<Match> findByDateBetween(LocalDate startDate, LocalDate endDate);
 
     List<Match> findByStatusAndDateBetween(
