@@ -13,7 +13,8 @@ public record MatchResponse(
         String homeTeam,
         String awayTeam,
         String venue,
-        String status
+        String status,
+        PaymentSummaryResponse paymentSummary
 ) 
 {
 

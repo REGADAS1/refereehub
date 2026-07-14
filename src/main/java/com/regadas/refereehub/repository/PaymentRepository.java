@@ -13,4 +13,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     boolean existsByMatchId(Long matchId); // verificar se um jogo já tem pagamento
 
     List<Payment> findByPaidFalse(); // procurar todos os pagamentos que não foram pagos
+
+    List<Payment> findByMatchIdIn(List<Long> matchIds); // procurar todos os pagamentos de uma lista de jogos
 }
