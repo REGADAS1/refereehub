@@ -10,6 +10,8 @@ import com.regadas.refereehub.exception.PaymentAlreadyExistsException;
 import com.regadas.refereehub.repository.MatchRepository;
 import com.regadas.refereehub.repository.PaymentRepository;
 import com.regadas.refereehub.exception.PaymentNotFoundException;
+import com.regadas.refereehub.exception.PaymentNotFoundForMatchException;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -113,8 +115,12 @@ public class PaymentService {
 
 
     public PaymentResponse findByMatchId(Long matchId) {
+        if (!matchRepository.existsById(matchId)) {
+            throw new MatchNotFoundException(matchId);
+        }
+
         Payment payment = paymentRepository.findByMatchId(matchId)
-                .orElseThrow(() -> new PaymentNotFoundException(matchId));
+                .orElseThrow(() -> new PaymentNotFoundForMatchException(matchId));
 
         return toResponse(payment);
     }
