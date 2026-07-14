@@ -9,6 +9,7 @@ import com.regadas.refereehub.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -25,9 +26,16 @@ public class DashboardService {
         this.paymentRepository = paymentRepository;
     }
 
-    public DashboardSummaryResponse getSummary() {
-        List<Match> matches = matchRepository.findAll();
-        List<Payment> payments = paymentRepository.findAll();
+    public DashboardSummaryResponse getSummary(LocalDate startDate, LocalDate endDate) {
+        List<Match> matches = findMatches(startDate, endDate);
+
+        List<Long> matchIds = matches.stream()
+                .map(Match::getId)
+                .toList();
+
+        List<Payment> payments = matchIds.isEmpty()
+                ? List.of()
+                : paymentRepository.findByMatchIdIn(matchIds);
 
         long totalMatches = matches.size();
 
@@ -71,6 +79,16 @@ public class DashboardService {
                 pendingPayments,
                 totalKilometers
         );
+    }
+
+    private List<Match> findMatches(LocalDate startDate, LocalDate endDate) {
+        boolean hasDateFilter = startDate != null && endDate != null;
+
+        if (hasDateFilter) {
+            return matchRepository.findByDateBetween(startDate, endDate);
+        }
+
+        return matchRepository.findAll();
     }
 
     private BigDecimal calculateMileageAmount(Payment payment) {
