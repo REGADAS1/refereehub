@@ -8,19 +8,27 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record CreateMatchRequest(
-        @NotNull LocalDate date,
+        @NotNull(message = "date is required")
+        LocalDate date,
+
         LocalTime time,
 
-        @NotBlank String role,
+        @NotBlank(message = "role is required")
+        String role,
 
         String ageGroup,
+
         String division,
 
-        @NotBlank String homeTeam,
-        @NotBlank String awayTeam,
+        @NotBlank(message = "homeTeam is required")
+        String homeTeam,
+
+        @NotBlank(message = "awayTeam is required")
+        String awayTeam,
 
         String venue,
 
-        @NotNull MatchStatus status
+        @NotNull(message = "status is required")
+        MatchStatus status
 ) {
 }

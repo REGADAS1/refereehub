@@ -7,18 +7,18 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CreatePaymentRequest(
-        @NotNull
-        @DecimalMin("0.00")
+        @NotNull(message = "feeAmount is required")
+        @DecimalMin(value = "0.01", message = "feeAmount must be greater than zero")
         BigDecimal feeAmount,
 
         boolean paid,
 
         LocalDate paidAt,
 
-        @DecimalMin("0.00")
+        @DecimalMin(value = "0.00", message = "kilometers cannot be negative")
         BigDecimal kilometers,
 
-        @DecimalMin("0.00")
+        @DecimalMin(value = "0.00", message = "kmRate cannot be negative")
         BigDecimal kmRate,
 
         boolean nightSubsidyApplied,

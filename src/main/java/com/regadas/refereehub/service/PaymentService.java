@@ -11,10 +11,12 @@ import com.regadas.refereehub.repository.MatchRepository;
 import com.regadas.refereehub.repository.PaymentRepository;
 import com.regadas.refereehub.exception.PaymentNotFoundException;
 import com.regadas.refereehub.exception.PaymentNotFoundForMatchException;
+import com.regadas.refereehub.exception.InvalidPaymentRequestException;
 
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -34,6 +36,13 @@ public class PaymentService {
     }
 
     public PaymentResponse create(Long matchId, CreatePaymentRequest request) {
+        validatePaymentRequest(
+                request.paid(),
+                request.paidAt(),
+                request.kilometers(),
+                request.kmRate()
+        );
+
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new MatchNotFoundException(matchId));
 
@@ -126,6 +135,14 @@ public class PaymentService {
     }
 
     public PaymentResponse update(Long id, UpdatePaymentRequest request) {
+
+        validatePaymentRequest(
+                request.paid(),
+                request.paidAt(),
+                request.kilometers(),
+                request.kmRate()
+        );
+
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new PaymentNotFoundException(id));
 
@@ -141,5 +158,27 @@ public class PaymentService {
         Payment updatedPayment = paymentRepository.save(payment);
 
         return toResponse(updatedPayment);
+    }
+
+    private void validatePaymentRequest(
+            boolean paid,
+            LocalDate paidAt,
+            BigDecimal kilometers,
+            BigDecimal kmRate
+    ) {
+        if (paid && paidAt == null) {
+            throw new InvalidPaymentRequestException("paidAt is required when paid is true.");
+        }
+
+        if (!paid && paidAt != null) {
+            throw new InvalidPaymentRequestException("paidAt must be null when paid is false.");
+        }
+
+        boolean hasKilometers = kilometers != null;
+        boolean hasKmRate = kmRate != null;
+
+        if (hasKilometers != hasKmRate) {
+            throw new InvalidPaymentRequestException("kilometers and kmRate must be provided together.");
+        }
     }
 }

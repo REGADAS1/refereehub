@@ -7,6 +7,7 @@ import com.regadas.refereehub.dto.DashboardSummaryResponse;
 import com.regadas.refereehub.repository.MatchRepository;
 import com.regadas.refereehub.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
+import com.regadas.refereehub.exception.InvalidDateRangeException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,6 +28,8 @@ public class DashboardService {
     }
 
     public DashboardSummaryResponse getSummary(LocalDate startDate, LocalDate endDate) {
+
+        validateDateRange(startDate, endDate);
         List<Match> matches = findMatches(startDate, endDate);
 
         List<Long> matchIds = matches.stream()
@@ -109,6 +112,20 @@ public class DashboardService {
     }
 
     private BigDecimal valueOrZero(BigDecimal value) {
-        return value == null ? BigDecimal.ZERO : value;
+            return value == null ? BigDecimal.ZERO : value;
+        }
+
+        private void validateDateRange(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null && endDate == null) {
+            return;
+        }
+
+        if (startDate == null || endDate == null) {
+            throw new InvalidDateRangeException("startDate and endDate must be provided together.");
+        }
+
+        if (endDate.isBefore(startDate)) {
+            throw new InvalidDateRangeException("endDate cannot be before startDate.");
+        }
     }
 }
